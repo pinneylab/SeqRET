@@ -1,6 +1,3 @@
-# SeqRET
-Codon optimization for DNA/RNA sequences.
-
 # SeqRET:
 ## Sequence Refinement for Enhanced Translation
 *backronyms are still cool, right? we're still doing backronyms?*
