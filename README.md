@@ -1,5 +1,4 @@
-# SeqRET:
-## Sequence Refinement for Enhanced Translation
+# SeqRET: Sequence Refinement for Enhanced Translation
 *backronyms are still cool, right? we're still doing backronyms?*
 
 SeqRET is a python package to optimize the codons of a DNA or RNA sequence for improved translation.
@@ -9,7 +8,7 @@ SeqRET is a python package to optimize the codons of a DNA or RNA sequence for i
 
 - [Installation](#installation)
 - [Usage](#usage)
-- [Contributing](#contributing)
+- [Heuristics](#heuristics)
 - [License](#license)
 
 ## Installation
