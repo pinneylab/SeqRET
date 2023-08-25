@@ -51,13 +51,21 @@ submission_box = html.Div(
             html.Button('Submit', id='submit-button', className='btn btn-primary')
             
         ]),
+        html.Hr(),
+        #button to run selected filters:
+        html.Button('Run Selected Filters', id='run-filters-button', className='btn btn-primary'),
     ],
     style=SUBMISSION_BOX_STYLE,
 )
 
 sidebar = html.Div(
     [
-        html.H3("Sidebar", className="display-4"),
+        html.H3("Suggestions", className="display-4", 
+                style={
+                    'font-size': 'calc(10px + 2vmin)',
+                    'max-width': '100%',
+                    'margin': '0'
+                    }),
         html.Hr(),
         html.Div(id="sidebar-content", children=[
             html.P(
@@ -70,16 +78,27 @@ sidebar = html.Div(
 
 
 content = html.Div(
-    [ dashbio.SequenceViewer(
-        id='default-sequence-viewer-{}'.format(i),
-        sequence='AAA',
-        toolbar=False,
-        title=filters_to_apply[i].get_title(),
-        badge=False,
-        charsPerLine=90,
-        search=False,
-    ) for i in range(len(filters_to_apply)) ]+
+    #here we riffle together the toggle switches in-line with the filters
+    [ html.Div([
+        dcc.Checklist(
+            id=f'toggle-switch-{i}',
+            options=[{'label': '', 'value': 'on'}],
+            value=['on'],
+            labelStyle={'display': 'inline-block'},
+            style={'fontSize': '20px'}
+        ),
+        dashbio.SequenceViewer(
+            id='default-sequence-viewer-{}'.format(i),
+            sequence='AAA',
+            toolbar=False,
+            title=filters_to_apply[i].get_title(),
+            badge=False,
+            charsPerLine=90,
+            search=False,
+        ),
+    ],style={'display': 'flex', 'flexDirection': 'row'}) for i in range(len(filters_to_apply)) ] + 
     [html.Div(id='output'),
      dashbio.FornaContainer(id='my-default-forna')],
     style=CONTENT_STYLE
 )
+
