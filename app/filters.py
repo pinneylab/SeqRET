@@ -210,13 +210,15 @@ class BannedCodonFilter(SequenceFilter):
         for i, codon in enumerate(codon_list):
             if codon in self.banned_codons:
                 banned_list.append(True)
-                #get alternate codons, and make sure they aren't banned
-                AA = self.AA_sequence[i]
-                alternate_codons = [(codon, 1) for codon in AA_freq_dict[AA].keys() if codon not in self.banned_codons]
-                suggestion_list.append(alternate_codons)
             else:
                 banned_list.append(False)
-                suggestion_list.append([])
+            #get alternate codons, and make sure they aren't banned
+            AA = self.AA_sequence[i]
+            if AA == 'X': #unknown AA, from unknown codon
+                alternate_codons = []
+            else:
+                alternate_codons = [(codon, 1) for codon in AA_freq_dict[AA].keys() if codon not in self.banned_codons]
+            suggestion_list.append(alternate_codons)
 
         #make the annotations
         self.annotations = []
@@ -300,19 +302,22 @@ class BannedSequencesFilter(SequenceFilter):
             #create sublist for each codon
             current_codon_suggestions = []
             #check all alternate codons. If they are not part of a banned subsequence, add them to the list of suggestions
-            if codon_scores[i] == 0:
-                AA = codon_to_AA[codon_list[i]]
-                alternate_codons = [(codon, 1) for codon in AA_freq_dict[AA].keys()]
-                #will the alternate codons be part of a banned subsequence?
-                #for each alternate codon:
-                for alt_codon in alternate_codons:
-                    #make temp sequence with new codon inserted:
-                    temp_sequence = self.sequence[:i*3] + alt_codon[0] + self.sequence[i*3+3:]
-                    #check if the new sequence has a banned subsequence:
-                    crap_indices = self.get_bad_indices(temp_sequence)[i*3:i*3+3]
-                    #if it does, remove the alternate codon from the list of suggestions
-                    if not any(crap_indices):
-                        current_codon_suggestions.append(alt_codon)
+            #if codon_scores[i] == 0:
+            AA = self.AA_sequence[i]
+            if AA == 'X': #unknown AA, from unknown codon
+                alternate_codons = []
+            else:
+                alternate_codons = [(codon, 0) for codon in AA_freq_dict[AA].keys()]
+            #will the alternate codons be part of a banned subsequence?
+            #for each alternate codon:
+            for alt_codon in alternate_codons:
+                #make temp sequence with new codon inserted:
+                temp_sequence = self.sequence[:i*3] + alt_codon[0] + self.sequence[i*3+3:]
+                #check if the new sequence has a banned subsequence:
+                crap_indices = self.get_bad_indices(temp_sequence)[i*3:i*3+3]
+                #if it does, remove the alternate codon from the list of suggestions
+                if not any(crap_indices):
+                    current_codon_suggestions.append((alt_codon[0], 1))
             codon_suggestions.append(current_codon_suggestions)
 
         #for each nucleotide that is part of a banned subsequence, give its containing nucleotide a score of 0. Suggest alternate nucleotides.
@@ -351,6 +356,7 @@ class BannedSequencesFilter(SequenceFilter):
 class SecondaryStructureFilter(SequenceFilter):
     def __init__(self, sequence, title='RNA Secondary Structure'):
         self.secondary_structure = None
+        self.temperature = 37.0
         super().__init__(sequence, title)
         
     def process(self):
@@ -396,7 +402,7 @@ class SecondaryStructureFilter(SequenceFilter):
         #first, generate the secondary structure using viennaRNA
         md = RNA.md()
         # change temperature to room temperature
-        md.temperature = 20.0 # 20 Deg Celcius
+        md.temperature = self.temperature 
         
         #convert DNA to RNA
         rna_sequence = self.sequence.replace('T', 'U')
@@ -405,8 +411,6 @@ class SecondaryStructureFilter(SequenceFilter):
         (secondary_sequence, mfe) = fc.mfe()
 
         self.secondary_structure = secondary_sequence
-        print(self.sequence)
-        print(secondary_sequence)
         #split into codons:
         codon_list = [self.sequence[i:i+3] for i in range(0, len(self.sequence), 3)]
         ss_list = [secondary_sequence[i:i+3] for i in range(0, len(secondary_sequence), 3)]
@@ -446,48 +450,48 @@ class SecondaryStructureFilter(SequenceFilter):
 
         codon_suggestions = []
         for i in range(len(codon_list)):
-            #if no pairing, make no suggestions:
-            if codon_scores[i] == 1:
-                codon_suggestions.append([])
-            #if pairing, suggest alternate codons:
+            # #if no pairing, make no suggestions:
+            # if codon_scores[i] == 1:
+            #     codon_suggestions.append([])
+            # #if pairing, suggest alternate codons:
+            # else:
+            #get alternate codons, and make sure they aren't banned
+            AA = self.AA_sequence[i]
+            if AA == 'X': #unknown AA, from unknown codon
+                alternate_codons = []
             else:
-                #get alternate codons, and make sure they aren't banned
-                AA = self.AA_sequence[i]
-                if AA == 'X': #unknown AA, from unknown codon
-                    alternate_codons = []
-                else:
-                    alternate_codons = [(codon, 0) for codon in AA_freq_dict[AA].keys()]
+                alternate_codons = [(codon, 0) for codon in AA_freq_dict[AA].keys()]
 
-                #for each alternate codon, count up how many bound nucleotides it resolves!
-                alternate_codon_scores = []
-                for alt_codon in alternate_codons:
-                    current_alt_codon_score = 0
-                    for j in range(3):
-                        #current_ss = ss_list[i][j]
-                        current_nucleotide = codon_list[i][j]
-                        current_paired_nucleotide = paired_codon_list[i][j]
-                        alternate_nucleotide = alt_codon[0][j]
+            #for each alternate codon, count up how many bound nucleotides it resolves!
+            alternate_codon_scores = []
+            for alt_codon in alternate_codons:
+                current_alt_codon_score = 0
+                for j in range(3):
+                    #current_ss = ss_list[i][j]
+                    current_nucleotide = codon_list[i][j]
+                    current_paired_nucleotide = paired_codon_list[i][j]
+                    alternate_nucleotide = alt_codon[0][j]
 
-                        #for nucleotides that aren't bound, suggest a reasonable alternative.
-                        if current_paired_nucleotide is None:
-                            if alternate_nucleotide.replace('T', 'U') in acceptable_alternatives[current_nucleotide.replace('T', 'U')]:
-                                current_alt_codon_score += 1
-                        else:
-                            #check if the alternate nucleotide proposed will not bind with its partner
-                            if alternate_nucleotide.replace('T', 'U') in non_pairing_partners[current_paired_nucleotide.replace('T', 'U')]:
-                                current_alt_codon_score += 1
-                    current_alt_codon_score /= 3
-                    alternate_codon_scores.append(current_alt_codon_score)
-                
-                #update scores
-                for j in range(len(alternate_codons)):
-                    alternate_codons[j] = (alternate_codons[j][0], alternate_codon_scores[j])
-                
-                #remove suggestions with score lower than current codon
-                alternate_codons = [alt_codon for alt_codon in alternate_codons if alt_codon[1] >= codon_scores[i]]
-                
-                #add the alternate codons to the list of suggestions
-                codon_suggestions.append(alternate_codons)
+                    #for nucleotides that aren't bound, suggest a reasonable alternative.
+                    if current_paired_nucleotide is None:
+                        if alternate_nucleotide.replace('T', 'U') in acceptable_alternatives[current_nucleotide.replace('T', 'U')]:
+                            current_alt_codon_score += 1
+                    else:
+                        #check if the alternate nucleotide proposed will not bind with its partner
+                        if alternate_nucleotide.replace('T', 'U') in non_pairing_partners[current_paired_nucleotide.replace('T', 'U')]:
+                            current_alt_codon_score += 1
+                current_alt_codon_score /= 3
+                alternate_codon_scores.append(current_alt_codon_score)
+            
+            #update scores
+            for j in range(len(alternate_codons)):
+                alternate_codons[j] = (alternate_codons[j][0], alternate_codon_scores[j])
+            
+            #remove suggestions with score lower than current codon
+            alternate_codons = [alt_codon for alt_codon in alternate_codons if alt_codon[1] >= codon_scores[i]]
+            
+            #add the alternate codons to the list of suggestions
+            codon_suggestions.append(alternate_codons)
 
         self.annotations = []
         for i in range(len(codon_list)):

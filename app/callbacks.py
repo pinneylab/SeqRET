@@ -238,65 +238,94 @@ def handle_suggestion_buttons(n_clicks_list, id_list, current_sequence, annotati
 
     raise PreventUpdate
 
+### When the user clicks the "Run Filters" button, run all selected filters jointly.
+@callback(
+    Output('sequence', 'data'),
+    Input('run-filters-button', 'n_clicks'),
+    State('annotations_per_filter', 'data'),
+    State('sequence', 'data'),
+    *[State(f'toggle-switch-{i}', 'value') for i in range(len(filters_to_apply))]
+)
+def run_filters(n_clicks, annotations_per_filter, current_sequence, *toggle_states):
+    if n_clicks is None:
+        raise PreventUpdate
 
-# @callback(
-#     [Output("sequence", "data")],
-#     [Input({'type': 'suggestion-button', 'index': ALL}, 'n_clicks')],
-#     [Input("submit-button", 'n_clicks')],
-#     [State("submission-box", "value")],
-#     [State({'type': 'suggestion-button', 'index': ALL}, 'id')],
-#     [State('sequence', 'data')],
-#     [State('annotations_per_filter', 'data')],
-#     [[State('default-sequence-viewer-{}'.format(i), 'mouseSelection') for i in range(len(filters_to_apply))]]
-# )
-# def handle_button_clicks(n_clicks_list, submit_button_nclicks, submitted_sequence, id_list,  current_sequence, annotations_per_filter, mouseSelections):
-
-#     ctx = callback_context
-#     triggered_id = ctx.triggered_id
-#     if triggered_id == 'submit-button':
-#         return [submitted_sequence]
-
-#     #otherwise, it's the suggestion buttons
+    filters_to_run = []
+    # Print the state of each toggle button
+    for i, state in enumerate(toggle_states):
+        #if state is 'on':
+        if state: #an unpressed toggle button is just an empty list
+            filters_to_run.append(i)
     
-#     if not ctx.triggered:
-#         button_id = 'No clicks yet'
-#         raise PreventUpdate
-#     else:
-#         button_id = json.loads(ctx.triggered[0]['prop_id'].split('.')[0])['index']
+    #get the annotations from just the filters we care about:
+    annotations_for_chosen_filters = []
+    for i in filters_to_run:
+        annotations_for_chosen_filters.append(annotations_per_filter[i])
 
-#     #get index
-#     chosen_nucleotide = None
-#     chosen_filter = None
-#     for i, mouseSelection in enumerate(mouseSelections):
-#         if mouseSelection is not None:
-#             chosen_nucleotide = mouseSelection['start']-1 #not 0 indexed lol
-#             chosen_filter = i
-#             break
-#     if chosen_filter is None:
-#         raise ValueError('No filter chosen!?')
-
-#     if n_clicks_list[button_id] is not None:
-#         #from the button ID, we know which suggestion was chosen.
-#         #we get the start and end sequence index from that suggestion.
-#         #finally, we insert the suggestion into the sequence.
-
-#         #get the index of annotation for our chosen nucleotide:
-#         chosen_annotation = None
-#         for a in annotations_per_filter[chosen_filter]:
-#             if a['start'] <= chosen_nucleotide < a['end']:
-#                 chosen_annotation = a
-#                 break
-#         if chosen_annotation is None:
-#             raise PreventUpdate
-
-#         #chosen_annotation = annotations_per_filter[chosen_filter][chosen_nucleotide]
-#         start_index = chosen_annotation['start']
-#         end_index = chosen_annotation['end']
-#         suggestion, _ = chosen_annotation['suggestions'][button_id]
-
-#         new_sequence = current_sequence[:start_index] + suggestion + current_sequence[end_index:]
-
-#         return [new_sequence]
-#     #else it hasn't been pushed yet
+    print('annotations_for_chosen_filters', len(annotations_for_chosen_filters), len(annotations_for_chosen_filters[0]))
     
-#     raise PreventUpdate
+    #for each codon in the sequence, get the list of suggestions for each chosen filter.
+    #for each suggested codon, we'll add up the scores for each filter. If a suggested codon is not in the list of suggestions for a filter, we'll add a score of 0 for that one.
+    #then we'll choose the codon with the highest score.
+
+    #get the sequence
+    sequence = current_sequence
+
+    #get the list of codons
+    codons = [sequence[i:i+3] for i in range(0, len(sequence), 3)]
+
+    #this reorganizes our data. Now we will have a list of length len(sequence)/3,
+    #where each element is a list of length len(filters_to_run), where each element is a list of suggestions for that codon.
+    #the suggestions are of the form (suggestion, score)
+    #we'll also add up the scores for the CURRENT codons while we're here.
+    suggestions_for_each_codon = []
+    current_scores_for_each_codon = []
+    for i in range(0, len(sequence), 3):
+
+        start_index = i
+        end_index = i+3
+        suggestions_for_codon = []
+        current_codon_score = 0
+        for annotations in annotations_for_chosen_filters:
+            for annotation in annotations:
+                if annotation['start'] == start_index and annotation['end'] == end_index:
+                    suggestions_for_codon.append(annotation['suggestions'])
+                    current_codon_score += annotation['score']
+                    break #assuming there's only one annotation per codon
+        suggestions_for_each_codon.append(suggestions_for_codon)
+        current_scores_for_each_codon.append(current_codon_score)
+
+    #now for each codon, we'll make a dictionary that contains the suggested alternate codons and their scores, by adding up the scores for each filter.
+    #the keys will be the suggested codons, and the values will be the scores.
+    #we'll then choose the codon with the highest score.
+    best_codons = []
+    for i, suggestions_for_current_codon in enumerate(suggestions_for_each_codon):
+        print('-----')
+        print('current codon:', codons[i])
+        print('current codon score:', current_scores_for_each_codon[i])
+        print('suggestions for current codon:', suggestions_for_current_codon)
+        #make a dictionary of the form {suggested_codon: score}
+        codon_scores = {}
+        for suggestions in suggestions_for_current_codon:
+            for suggestion, score in suggestions:
+                if suggestion not in codon_scores:
+                    codon_scores[suggestion] = score
+                else:
+                    codon_scores[suggestion] += score
+        #now get the codon with the highest score
+        #if the dictionary is empty, just keep the current codon
+        if len(codon_scores) == 0:
+            best_codons.append(codons[i])
+            continue
+        best_codon = max(codon_scores, key=codon_scores.get)
+        #if it's the same score or lower than our current codon, don't change it
+        if codon_scores[best_codon] <= current_scores_for_each_codon[i]:
+            best_codon = codons[i]
+        best_codons.append(best_codon)
+
+    #get the new sequence with the best codons
+    new_sequence = ''
+    for codon in best_codons:
+        new_sequence += codon
+
+    return new_sequence
