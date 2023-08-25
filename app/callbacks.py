@@ -186,6 +186,8 @@ def handle_submit_button(submit_button_nclicks, submitted_sequence):
     ctx = callback_context
     triggered_id = ctx.triggered[0]['prop_id']
     if triggered_id == 'submit-button.n_clicks':
+        #make sequence uppercase:
+        submitted_sequence = submitted_sequence.upper()
         return submitted_sequence
     else:
         raise PreventUpdate
