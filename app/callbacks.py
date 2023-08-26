@@ -19,6 +19,27 @@ def show_selected_sequences(secondary_structure, current_sequence):
         'structure': secondary_structure
         }]
 
+# #if our filter toggles are clicked, hide the corresponding sequence viewer
+# @callback(
+#     [Output(f'default-sequence-viewer-{i}', 'sequence') for i in range(len(filters_to_apply))],
+#     State('sequence', 'data'),
+#     [Input(f'toggle-switch-{i}', 'value') for i in range(len(filters_to_apply))],
+#     allow_duplicate=True
+# )
+# def toggle_sequence_viewers(sequence, *toggle_states):
+#     # Print the state of each toggle button
+#     seq_list = []
+#     for i, state in enumerate(toggle_states):
+#         #if state is 'on':
+#         if not state:
+#             #hide the sequence viewer
+#             seq_list.append(None)
+#         else:
+#             #show the sequence viewer
+#             seq_list.append(sequence)
+#     return seq_list
+
+
 #if we have a filter that does secondary structure, update ours:
 @callback(
     Output('secondary_structure', 'data'),
@@ -57,10 +78,10 @@ def run_filters(seq):
     Input('annotations_per_filter', 'data'),
     State('sequence', 'data'),
     State('clicked_nucleotide', 'data'),
-    State('clicked_filter', 'data')
-    ]
+    State('clicked_filter', 'data')],
+    [Input(f'toggle-switch-{i}', 'value') for i in range(len(filters_to_apply))],
 )
-def update_highlighting_and_suggestions(mouseSelections, annotations_per_filter, current_sequence, prev_nucleotide, prev_filter):
+def update_highlighting_and_suggestions(mouseSelections, annotations_per_filter, current_sequence, prev_nucleotide, prev_filter, *toggle_states):
     
     #if current sequence hasn't been assigned, don't update. Otherwise our sequences break.
     if current_sequence is None:
@@ -95,14 +116,26 @@ def update_highlighting_and_suggestions(mouseSelections, annotations_per_filter,
         coverages.append(sequence_coverage_from_annotations(annotations, filter, chosen_nucleotide))
     
     annotations = None
+    print('test1')
+    #sidebar_children = None
     if chosen_filter is not None:
         annotations = annotations_per_filter[chosen_filter]
-    sidebar_children = sidebar_children_from_annotations(annotations, filter, chosen_nucleotide)
+        sidebar_children = sidebar_children_from_annotations(annotations, filters_to_apply[chosen_filter], chosen_nucleotide)
+    else:
+        sidebar_children = sidebar_children_from_annotations(annotations, None, chosen_nucleotide)
 
+    print('test2')
     #update sequence as well while we're doing this
-    sequences = [current_sequence]*len(filters_to_apply)
 
-    return coverages + sequences + sidebar_children, chosen_nucleotide, chosen_filter
+    #sequences = [current_sequence]*len(filters_to_apply)
+    ### TODO: make filters invisible when not toggled!
+    seq_list = []
+    print('toggle_states', toggle_states)
+    for i, state in enumerate(toggle_states):
+        seq_list.append([current_sequence])
+    print(seq_list)
+
+    return coverages + seq_list + sidebar_children, chosen_nucleotide, chosen_filter
 
 def sequence_coverage_from_annotations(annotations, filter, chosen_nucleotide):
     '''
@@ -148,6 +181,8 @@ def sidebar_children_from_annotations(annotations, filter, chosen_nucleotide):
     Output:
         sidebar_children: a list of html elements to be displayed in the sidebar.
     '''
+    print('filter', filter)
+    print('chosen_nucleotide', chosen_nucleotide)
     if chosen_nucleotide is None:
         return [html.P(
             "Suggestions will be shown here.", className="lead"
@@ -261,8 +296,6 @@ def run_filters(n_clicks, annotations_per_filter, current_sequence, *toggle_stat
     annotations_for_chosen_filters = []
     for i in filters_to_run:
         annotations_for_chosen_filters.append(annotations_per_filter[i])
-
-    print('annotations_for_chosen_filters', len(annotations_for_chosen_filters), len(annotations_for_chosen_filters[0]))
     
     #for each codon in the sequence, get the list of suggestions for each chosen filter.
     #for each suggested codon, we'll add up the scores for each filter. If a suggested codon is not in the list of suggestions for a filter, we'll add a score of 0 for that one.
@@ -300,10 +333,6 @@ def run_filters(n_clicks, annotations_per_filter, current_sequence, *toggle_stat
     #we'll then choose the codon with the highest score.
     best_codons = []
     for i, suggestions_for_current_codon in enumerate(suggestions_for_each_codon):
-        print('-----')
-        print('current codon:', codons[i])
-        print('current codon score:', current_scores_for_each_codon[i])
-        print('suggestions for current codon:', suggestions_for_current_codon)
         #make a dictionary of the form {suggested_codon: score}
         codon_scores = {}
         for suggestions in suggestions_for_current_codon:
