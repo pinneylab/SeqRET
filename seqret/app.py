@@ -1,9 +1,9 @@
 import dash_bootstrap_components as dbc
 from dash import Dash, dcc, html
 
-from layouts import submission_box, sidebar, content
-from filters import filters_to_apply
-from callbacks import run_filters, update_highlighting_and_suggestions, handle_submit_button, handle_suggestion_buttons
+from .layouts import submission_box, sidebar, content
+from .filters import filters_to_apply
+from .callbacks import run_filters, update_highlighting_and_suggestions, handle_submit_button, handle_suggestion_buttons
 
 
 def create_sequence_viewer_app(filter_list):

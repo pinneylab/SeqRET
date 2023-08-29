@@ -1,9 +1,10 @@
 import json
 from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
-from filters import filters_to_apply
 from dash import callback, callback_context, html
 from dash.exceptions import PreventUpdate
+
+from .filters import filters_to_apply
 
 ## If we have secondary structure, show it!
 @callback(
