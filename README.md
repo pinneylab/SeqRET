@@ -45,9 +45,6 @@ Then, hit the "Run Selected Filters" button to apply the filters. For each codon
 ### Exporting the sequence:
 Each change you make to the sequence will be reflected in the text box at the left of the page. You may copy this sequence as output.
 
-*N.B.: Currently there is an error that the output sequence in the text box is not updated after hitting the 'Run Selected Filters' button. This can be circumvented by clicking on any codon and changing it (to the same codon) to trigger the update.*
-
-
 ## Filters
 
 Currently, there are four filters:

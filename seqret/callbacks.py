@@ -69,6 +69,15 @@ def run_filters(seq):
         annotations_per_filter.append(annotations)
     return annotations_per_filter
 
+# new sequence -> update submission box
+@callback(
+    Output("submission-box", "value"),
+    [Input("sequence", "data")],
+    prevent_initial_call=True #we don't want this to run on load, because we haven't input a sequence yet.
+)
+def update_submission_box(seq):
+    return seq
+
 @callback(
     [[Output('default-sequence-viewer-{}'.format(i), 'coverage') for i in range(len(filters_to_apply))]+
     [Output('default-sequence-viewer-{}'.format(i), 'sequence') for i in range(len(filters_to_apply))]+
@@ -199,8 +208,6 @@ def sidebar_children_from_annotations(annotations, filter, chosen_nucleotide):
 
         return [buttons]
 
-#CGCTGGCGGCGTGCTAATACATGCAGGAGGTGCNGGATCGATGGGAGCTTGCTCCCTGCAGATCAGCGGCGGACGGGTGAGTAACACGTGGGTAACCTGCCTGTAAGACTGGGATAACTCCGGGAAACCGGGGCTAATACCGGATAATTTAGTTCCTCGCATGAGGAACTGTTGAAAGGTGGCTTC
-
 #Submit button -> sequence
 @callback(
     Output("sequence", "data", allow_duplicate=True),
@@ -223,7 +230,6 @@ def handle_submit_button(submit_button_nclicks, submitted_sequence):
 # + current selection
 @callback(
     Output("sequence", "data", allow_duplicate=True),
-    Output("submission-box", "value"),
     [Input({'type': 'suggestion-button', 'index': ALL}, 'n_clicks')],
     [State({'type': 'suggestion-button', 'index': ALL}, 'id')],
     [State('sequence', 'data')],
@@ -260,7 +266,7 @@ def handle_suggestion_buttons(n_clicks_list, id_list, current_sequence, annotati
 
         new_sequence = current_sequence[:start_index] + suggestion + current_sequence[end_index:]
 
-        return new_sequence, new_sequence
+        return new_sequence
 
     raise PreventUpdate
 
