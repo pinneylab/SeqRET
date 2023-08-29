@@ -18,6 +18,14 @@ First, clone the directory anywhere on your machine using the following command:
 
 ```git clone https://github.com/pinneylab/SeqRET.git```
 
+(Recommended) Create a fresh conda environment with python=3.8 using:
+
+```conda create -n seqret python=3.8```
+
+and activate using:
+
+```conda activate seqret```
+
 Then, install the package to your python or conda environment using:
 
 ```pip install -e SeqRET/```
