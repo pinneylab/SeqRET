@@ -116,24 +116,16 @@ def update_highlighting_and_suggestions(mouseSelections, annotations_per_filter,
         coverages.append(sequence_coverage_from_annotations(annotations, filter, chosen_nucleotide))
     
     annotations = None
-    print('test1')
-    #sidebar_children = None
     if chosen_filter is not None:
         annotations = annotations_per_filter[chosen_filter]
         sidebar_children = sidebar_children_from_annotations(annotations, filters_to_apply[chosen_filter], chosen_nucleotide)
     else:
         sidebar_children = sidebar_children_from_annotations(annotations, None, chosen_nucleotide)
 
-    print('test2')
-    #update sequence as well while we're doing this
-
-    #sequences = [current_sequence]*len(filters_to_apply)
     ### TODO: make filters invisible when not toggled!
     seq_list = []
-    print('toggle_states', toggle_states)
     for i, state in enumerate(toggle_states):
         seq_list.append([current_sequence])
-    print(seq_list)
 
     return coverages + seq_list + sidebar_children, chosen_nucleotide, chosen_filter
 
@@ -181,8 +173,6 @@ def sidebar_children_from_annotations(annotations, filter, chosen_nucleotide):
     Output:
         sidebar_children: a list of html elements to be displayed in the sidebar.
     '''
-    print('filter', filter)
-    print('chosen_nucleotide', chosen_nucleotide)
     if chosen_nucleotide is None:
         return [html.P(
             "Suggestions will be shown here.", className="lead"
