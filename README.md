@@ -87,6 +87,11 @@ banned_codons = ['GTG', 'TTG', 'GAG', 'GGA']
 ### Frequency Filter
 This filter will score each codon based on its relative frequency in E. Coli. The frequency data is stored in the `seqret/filters.py` file, and can be altered there.
 
+### RNA Secondary Structure Filter
+This filter will score each codon based on its predicted secondary structure in the RNA sequence. Codons that are base pairing will be ranked more poorly than those that are not pairing, and suggestions will be offered to reduce pairing. The secondary structure is predicted using the ViennaRNA package.
+
+This filter is currently disabled because it is very slow for long sequences. Additionally, the codon changes cause unpredictable changes in the secondary structure, so the suggestions are not always helpful.
+
 ## Adding a Filter
 
 Users can define a new filter in `seqret/filters.py` by extending the SequenceFilter class and implementing the process() method.
