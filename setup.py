@@ -12,8 +12,7 @@ setup(
         'dash-bio==1.0.2',
         'dash-core-components==2.0.0',
         'dash-html-components==2.0.0',
-        'dash-table==5.0.0',
-        'viennarna'
+        'dash-table==5.0.0'
     ],
     entry_points={
         'console_scripts': [

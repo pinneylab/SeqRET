@@ -1,5 +1,5 @@
 from Bio.Data import CodonTable
-import RNA
+#import RNA
 
 ### Helper dictionaries ###
 # Todo: these should probably be moved into their respective filters?
@@ -361,174 +361,174 @@ class BannedSequencesFilter(SequenceFilter):
         else:
             return 'red'
 
-class SecondaryStructureFilter(SequenceFilter):
-    def __init__(self, sequence, title='RNA Secondary Structure'):
-        self.secondary_structure = None
-        self.temperature = 37.0
-        super().__init__(sequence, title)
+# class SecondaryStructureFilter(SequenceFilter):
+#     def __init__(self, sequence, title='RNA Secondary Structure'):
+#         self.secondary_structure = None
+#         self.temperature = 37.0
+#         super().__init__(sequence, title)
         
-    def process(self):
-        '''
-        For a stored sequence, this updates the scores and suggestions based on the implemented filter.
-        Input: 
-            None, but uses self.sequence
-            self.sequence: a string representing the nucleotide sequence
-        Output:
-            None, but updates self.annotations
-            self.annotations:
-                This breaks the sequence into regions, and gives the scores and suggestions for each region.
-                A list of dicts. Each dict is of the form:
-                    { 'start': start_index,
-                      'end': end_index,
-                      'score': score,
-                      'suggestions': [ (suggestion_1, score_1), (suggestion_2, score_2), ... ]}
-        '''
-        def paired_positions(sequence, structure):
-            """
-            Given a sequence and its corresponding secondary structure in dot-bracket notation,
-            return a list where each position has the paired nucleotide for the corresponding nucleotide
-            in the sequence based on the secondary structure. If the nucleotide is not base paired, 
-            that position in the list will contain None.
-            """
-            stack = []
-            paired_list = [None] * len(sequence)
+#     def process(self):
+#         '''
+#         For a stored sequence, this updates the scores and suggestions based on the implemented filter.
+#         Input: 
+#             None, but uses self.sequence
+#             self.sequence: a string representing the nucleotide sequence
+#         Output:
+#             None, but updates self.annotations
+#             self.annotations:
+#                 This breaks the sequence into regions, and gives the scores and suggestions for each region.
+#                 A list of dicts. Each dict is of the form:
+#                     { 'start': start_index,
+#                       'end': end_index,
+#                       'score': score,
+#                       'suggestions': [ (suggestion_1, score_1), (suggestion_2, score_2), ... ]}
+#         '''
+#         def paired_positions(sequence, structure):
+#             """
+#             Given a sequence and its corresponding secondary structure in dot-bracket notation,
+#             return a list where each position has the paired nucleotide for the corresponding nucleotide
+#             in the sequence based on the secondary structure. If the nucleotide is not base paired, 
+#             that position in the list will contain None.
+#             """
+#             stack = []
+#             paired_list = [None] * len(sequence)
 
-            for i, (nt, symbol) in enumerate(zip(sequence, structure)):
-                if symbol == '(':
-                    stack.append(i)
-                elif symbol == ')':
-                    start = stack.pop()
-                    paired_list[start] = nt
-                    paired_list[i] = sequence[start]
+#             for i, (nt, symbol) in enumerate(zip(sequence, structure)):
+#                 if symbol == '(':
+#                     stack.append(i)
+#                 elif symbol == ')':
+#                     start = stack.pop()
+#                     paired_list[start] = nt
+#                     paired_list[i] = sequence[start]
 
-            return paired_list
+#             return paired_list
         
-        if self.sequence in ('', None):
-            self.annotations = []
-            return
+#         if self.sequence in ('', None):
+#             self.annotations = []
+#             return
         
-        #first, generate the secondary structure using viennaRNA
-        md = RNA.md()
-        # change temperature to room temperature
-        md.temperature = self.temperature 
+#         #first, generate the secondary structure using viennaRNA
+#         md = RNA.md()
+#         # change temperature to room temperature
+#         md.temperature = self.temperature 
         
-        #convert DNA to RNA
-        rna_sequence = self.sequence.replace('T', 'U')
-        # compute minimum free energy (MFE) and corresponding structure
-        fc = RNA.fold_compound(rna_sequence, md)
-        (secondary_sequence, mfe) = fc.mfe()
+#         #convert DNA to RNA
+#         rna_sequence = self.sequence.replace('T', 'U')
+#         # compute minimum free energy (MFE) and corresponding structure
+#         fc = RNA.fold_compound(rna_sequence, md)
+#         (secondary_sequence, mfe) = fc.mfe()
 
-        self.secondary_structure = secondary_sequence
-        #split into codons:
-        codon_list = [self.sequence[i:i+3] for i in range(0, len(self.sequence), 3)]
-        ss_list = [secondary_sequence[i:i+3] for i in range(0, len(secondary_sequence), 3)]
+#         self.secondary_structure = secondary_sequence
+#         #split into codons:
+#         codon_list = [self.sequence[i:i+3] for i in range(0, len(self.sequence), 3)]
+#         ss_list = [secondary_sequence[i:i+3] for i in range(0, len(secondary_sequence), 3)]
 
-        #get paired sequence:
-        paired_list = paired_positions(self.sequence, secondary_sequence)
-        paired_codon_list = [paired_list[i:i+3] for i in range(0, len(paired_list), 3)]
+#         #get paired sequence:
+#         paired_list = paired_positions(self.sequence, secondary_sequence)
+#         paired_codon_list = [paired_list[i:i+3] for i in range(0, len(paired_list), 3)]
 
-        #score each codon. If the secondary structure is not bound ('.'), give it a score of 1. Otherwise, give it a score of 0.
-        codon_scores = []
-        for i in range(len(codon_list)):
-            #count the number of '.'s in ss_list[i]
-            score = ss_list[i].count('.')/3
-            codon_scores.append(score)
+#         #score each codon. If the secondary structure is not bound ('.'), give it a score of 1. Otherwise, give it a score of 0.
+#         codon_scores = []
+#         for i in range(len(codon_list)):
+#             #count the number of '.'s in ss_list[i]
+#             score = ss_list[i].count('.')/3
+#             codon_scores.append(score)
         
-        # #for nucleotides that are base pairing, we want to swap them with ones that we know won't bind with their partner.
-        # non_binding_nucleotides = {
-        #     'A': ['U', 'C'],
-        #     'U': ['A', 'G'],
-        #     'G': ['U', 'C'],
-        #     'C': ['A', 'G']
-        # }
-        #if we want to change a nucleotide that already isn't pairnig, we need to ensure we won't cause it to pair.
-        #this dict holds acceptable alternatives:
-        acceptable_alternatives = {
-            'A': ['A'],
-            'U': ['U', 'C'],
-            'G': ['A', 'G'],
-            'C': ['C']
-        }
-        non_pairing_partners = {
-            'A': ['A', 'C', 'G'],
-            'U': ['U', 'C'],
-            'G': ['G', 'A'],
-            'C': ['C', 'A', 'U']
-        }
+#         # #for nucleotides that are base pairing, we want to swap them with ones that we know won't bind with their partner.
+#         # non_binding_nucleotides = {
+#         #     'A': ['U', 'C'],
+#         #     'U': ['A', 'G'],
+#         #     'G': ['U', 'C'],
+#         #     'C': ['A', 'G']
+#         # }
+#         #if we want to change a nucleotide that already isn't pairnig, we need to ensure we won't cause it to pair.
+#         #this dict holds acceptable alternatives:
+#         acceptable_alternatives = {
+#             'A': ['A'],
+#             'U': ['U', 'C'],
+#             'G': ['A', 'G'],
+#             'C': ['C']
+#         }
+#         non_pairing_partners = {
+#             'A': ['A', 'C', 'G'],
+#             'U': ['U', 'C'],
+#             'G': ['G', 'A'],
+#             'C': ['C', 'A', 'U']
+#         }
 
-        codon_suggestions = []
-        for i in range(len(codon_list)):
-            # #if no pairing, make no suggestions:
-            # if codon_scores[i] == 1:
-            #     codon_suggestions.append([])
-            # #if pairing, suggest alternate codons:
-            # else:
-            #get alternate codons, and make sure they aren't banned
-            AA = self.AA_sequence[i]
-            if AA == 'X': #unknown AA, from unknown codon
-                alternate_codons = []
-            else:
-                alternate_codons = [(codon, 0) for codon in AA_to_codons[AA]]
+#         codon_suggestions = []
+#         for i in range(len(codon_list)):
+#             # #if no pairing, make no suggestions:
+#             # if codon_scores[i] == 1:
+#             #     codon_suggestions.append([])
+#             # #if pairing, suggest alternate codons:
+#             # else:
+#             #get alternate codons, and make sure they aren't banned
+#             AA = self.AA_sequence[i]
+#             if AA == 'X': #unknown AA, from unknown codon
+#                 alternate_codons = []
+#             else:
+#                 alternate_codons = [(codon, 0) for codon in AA_to_codons[AA]]
 
-            #for each alternate codon, count up how many bound nucleotides it resolves!
-            alternate_codon_scores = []
-            for alt_codon in alternate_codons:
-                current_alt_codon_score = 0
-                for j in range(3):
-                    #current_ss = ss_list[i][j]
-                    current_nucleotide = codon_list[i][j]
-                    current_paired_nucleotide = paired_codon_list[i][j]
-                    alternate_nucleotide = alt_codon[0][j]
+#             #for each alternate codon, count up how many bound nucleotides it resolves!
+#             alternate_codon_scores = []
+#             for alt_codon in alternate_codons:
+#                 current_alt_codon_score = 0
+#                 for j in range(3):
+#                     #current_ss = ss_list[i][j]
+#                     current_nucleotide = codon_list[i][j]
+#                     current_paired_nucleotide = paired_codon_list[i][j]
+#                     alternate_nucleotide = alt_codon[0][j]
 
-                    #for nucleotides that aren't bound, suggest a reasonable alternative.
-                    if current_paired_nucleotide is None:
-                        if alternate_nucleotide.replace('T', 'U') in acceptable_alternatives[current_nucleotide.replace('T', 'U')]:
-                            current_alt_codon_score += 1
-                    else:
-                        #check if the alternate nucleotide proposed will not bind with its partner
-                        if alternate_nucleotide.replace('T', 'U') in non_pairing_partners[current_paired_nucleotide.replace('T', 'U')]:
-                            current_alt_codon_score += 1
-                current_alt_codon_score /= 3
-                alternate_codon_scores.append(current_alt_codon_score)
+#                     #for nucleotides that aren't bound, suggest a reasonable alternative.
+#                     if current_paired_nucleotide is None:
+#                         if alternate_nucleotide.replace('T', 'U') in acceptable_alternatives[current_nucleotide.replace('T', 'U')]:
+#                             current_alt_codon_score += 1
+#                     else:
+#                         #check if the alternate nucleotide proposed will not bind with its partner
+#                         if alternate_nucleotide.replace('T', 'U') in non_pairing_partners[current_paired_nucleotide.replace('T', 'U')]:
+#                             current_alt_codon_score += 1
+#                 current_alt_codon_score /= 3
+#                 alternate_codon_scores.append(current_alt_codon_score)
             
-            #update scores
-            for j in range(len(alternate_codons)):
-                alternate_codons[j] = (alternate_codons[j][0], alternate_codon_scores[j])
+#             #update scores
+#             for j in range(len(alternate_codons)):
+#                 alternate_codons[j] = (alternate_codons[j][0], alternate_codon_scores[j])
             
-            #remove suggestions with score lower than current codon
-            alternate_codons = [alt_codon for alt_codon in alternate_codons if alt_codon[1] >= codon_scores[i]]
+#             #remove suggestions with score lower than current codon
+#             alternate_codons = [alt_codon for alt_codon in alternate_codons if alt_codon[1] >= codon_scores[i]]
             
-            #add the alternate codons to the list of suggestions
-            codon_suggestions.append(alternate_codons)
+#             #add the alternate codons to the list of suggestions
+#             codon_suggestions.append(alternate_codons)
 
-        self.annotations = []
-        for i in range(len(codon_list)):
-            self.annotations.append({
-                'start': i*3,
-                'end': i*3+3,
-                'score': codon_scores[i],
-                'suggestions': codon_suggestions[i]
-            })
+#         self.annotations = []
+#         for i in range(len(codon_list)):
+#             self.annotations.append({
+#                 'start': i*3,
+#                 'end': i*3+3,
+#                 'score': codon_scores[i],
+#                 'suggestions': codon_suggestions[i]
+#             })
 
-    def score_to_color(self, score):
-        '''
-        Given a score, returns a color.
-        Input:
-            score: a float between 0 and 1
-        Output:
-            color: a string representing a color to be used by Dash
-        '''
-        if score > 0.67:
-            return 'green'
-        elif score > 0.34:
-            return 'yellow'
-        elif score > 0.01:
-            return 'orange'
-        else:
-            return 'red'
+#     def score_to_color(self, score):
+#         '''
+#         Given a score, returns a color.
+#         Input:
+#             score: a float between 0 and 1
+#         Output:
+#             color: a string representing a color to be used by Dash
+#         '''
+#         if score > 0.67:
+#             return 'green'
+#         elif score > 0.34:
+#             return 'yellow'
+#         elif score > 0.01:
+#             return 'orange'
+#         else:
+#             return 'red'
 
-    def get_secondary_structure(self):
-        return self.secondary_structure
+#     def get_secondary_structure(self):
+#         return self.secondary_structure
 
 ### Define Filters to Use ###
 # Eventually, this should contain all the filters available to the app, and at runtime the user can check boxes interactively to enable/disable filters.
