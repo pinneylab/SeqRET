@@ -534,7 +534,7 @@ class BannedSequencesFilter(SequenceFilter):
 # Eventually, this should contain all the filters available to the app, and at runtime the user can check boxes interactively to enable/disable filters.
 # For now, we specify them here. The "Secondary Structure" filter is disabled because it is slow for sequences longer than ~300 nucleotides. 
 
-banned_codons = ['GTG', 'TTG', 'GAG', 'GGA']
+banned_codons = ['CTG', 'GTG', 'TTG', 'GAG', 'GGA']
 banned_sequences = ['AGGAG', 
                     'GAGGT', 
                     'AAGGA', 
