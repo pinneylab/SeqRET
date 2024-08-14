@@ -92,7 +92,6 @@ def update_submission_box(seq):
     [Input(f'toggle-switch-{i}', 'value') for i in range(len(filters_to_apply))],
 )
 def update_highlighting_and_suggestions(mouseSelections, annotations_per_filter, current_sequence, prev_nucleotide, prev_filter, *toggle_states):
-    
     #if current sequence hasn't been assigned, don't update. Otherwise our sequences break.
     if current_sequence is None:
         raise PreventUpdate
@@ -221,6 +220,8 @@ def handle_submit_button(submit_button_nclicks, submitted_sequence):
     if triggered_id == 'submit-button.n_clicks':
         #make sequence uppercase:
         submitted_sequence = submitted_sequence.upper()
+        #remove whitespace:
+        submitted_sequence = submitted_sequence.replace(' ', '').replace('\n', '').replace('\t', '').replace('\r', '')
         return submitted_sequence
     else:
         raise PreventUpdate

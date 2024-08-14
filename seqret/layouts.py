@@ -1,6 +1,5 @@
-import dash_html_components as html
 import dash_bio as dashbio
-from dash import dcc
+from dash import dcc, html
 from .filters import filters_to_apply
 
 ### Sidebar Layout ###
