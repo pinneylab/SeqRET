@@ -14,10 +14,6 @@ SeqRET is a python package to optimize the codons of a DNA or RNA sequence for i
 
 ## Installation
 
-First, clone the directory anywhere on your machine using the following command:
-
-```git clone https://github.com/pinneylab/SeqRET.git```
-
 (Recommended) Create a fresh conda environment with python=3.8 using:
 
 ```conda create -n seqret python=3.8```
@@ -28,7 +24,7 @@ and activate using:
 
 Then, install the package to your python or conda environment using:
 
-```pip install -e SeqRET/```
+```pip install seqret```
 
 
 ## Usage
