@@ -36,7 +36,10 @@ def create_sequence_viewer_app(filter_list):
 def start_app():
     ### Run the app ###
     app = create_sequence_viewer_app(filters_to_apply)
-    app.run()
+    from waitress import serve
+    print('Server started.')
+    print('Please navigate to http://127.0.0.1:8050 in your web browser.')
+    serve(app.server, host="0.0.0.0", port=8050)
 
 if __name__ == "__main__":
     start_app()
