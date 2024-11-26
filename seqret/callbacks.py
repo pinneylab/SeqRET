@@ -4,7 +4,11 @@ from dash.exceptions import PreventUpdate
 from dash import callback, callback_context, html
 from dash.exceptions import PreventUpdate
 
-from .filters import filters_to_apply
+#from .filters import filters_to_apply
+from .filters import get_filters
+from .optimizer import optimize_sequence
+
+filters_config = get_filters()
 
 ## If we have secondary structure, show it!
 @callback(
@@ -20,54 +24,38 @@ def show_selected_sequences(secondary_structure, current_sequence):
         'structure': secondary_structure
         }]
 
-# #if our filter toggles are clicked, hide the corresponding sequence viewer
+
 # @callback(
-#     [Output(f'default-sequence-viewer-{i}', 'sequence') for i in range(len(filters_to_apply))],
-#     State('sequence', 'data'),
-#     [Input(f'toggle-switch-{i}', 'value') for i in range(len(filters_to_apply))],
-#     allow_duplicate=True
+#     Output("annotations_per_filter", "data"),
+#     [Input("sequence", "data")],
+#     prevent_initial_call=True #we don't want this to run on load, because we haven't input a sequence yet.
 # )
-# def toggle_sequence_viewers(sequence, *toggle_states):
-#     # Print the state of each toggle button
-#     seq_list = []
-#     for i, state in enumerate(toggle_states):
-#         #if state is 'on':
-#         if not state:
-#             #hide the sequence viewer
-#             seq_list.append(None)
-#         else:
-#             #show the sequence viewer
-#             seq_list.append(sequence)
-#     return seq_list
-
-
-#if we have a filter that does secondary structure, update ours:
-@callback(
-    Output('secondary_structure', 'data'),
-    Input('annotations_per_filter', 'data')
-)
-def update_secondary_structure(annotations_per_filter):
-    for filter in filters_to_apply:
-        if filter.get_title() == 'RNA Secondary Structure':
-            return filter.get_secondary_structure()
-    return None
-
-@callback(
-    Output("annotations_per_filter", "data"),
-    [Input("sequence", "data")],
-    prevent_initial_call=True #we don't want this to run on load, because we haven't input a sequence yet.
-)
-def run_filters(seq):
-    #filter_list is static and passed in to wrapper function
+# def run_filters(seq):
+#     #filter_list is static and passed in to wrapper function
     
-    #get output of each filter:
-    annotations_per_filter = []
-    for filter in filters_to_apply:
-        filter.update_sequence(seq, force=True)
-        filter.process()
-        annotations = filter.get_annotations()
-        annotations_per_filter.append(annotations)
-    return annotations_per_filter
+#     #get output of each filter:
+#     annotations_per_filter = []
+#     for filter in filters_to_apply:
+#         filter.update_sequence(seq, force=True)
+#         filter.process()
+#         annotations = filter.get_annotations()
+#         annotations_per_filter.append(annotations)
+#     return annotations_per_filter
+
+@callback(
+    Output('sequence', 'data'),
+    Input('run-filters-button', 'n_clicks'),
+    State('sequence', 'data'),
+    *[State(f'toggle-switch-{i}', 'value') for i in range(len(filters_config))]
+)
+def run_filters(n_clicks, current_sequence, *toggle_states):
+    if n_clicks is None:
+        raise PreventUpdate
+
+    filters_enabled = [bool(state) for state in toggle_states]
+    optimized_sequence = optimize_sequence(current_sequence, filters_config=filters_config, filters_enabled=filters_enabled)
+    return optimized_sequence
+
 
 # new sequence -> update submission box
 @callback(
@@ -79,17 +67,17 @@ def update_submission_box(seq):
     return seq
 
 @callback(
-    [[Output('default-sequence-viewer-{}'.format(i), 'coverage') for i in range(len(filters_to_apply))]+
-    [Output('default-sequence-viewer-{}'.format(i), 'sequence') for i in range(len(filters_to_apply))]+
+    [[Output('default-sequence-viewer-{}'.format(i), 'coverage') for i in range(len(filters_config))]+
+    [Output('default-sequence-viewer-{}'.format(i), 'sequence') for i in range(len(filters_config))]+
     [Output('sidebar-content', 'children')]],
     Output('clicked_nucleotide', 'data'),
     Output('clicked_filter', 'data'),
-    [[Input('default-sequence-viewer-{}'.format(i), 'mouseSelection') for i in range(len(filters_to_apply))],
+    [[Input('default-sequence-viewer-{}'.format(i), 'mouseSelection') for i in range(len(filters_config))],
     Input('annotations_per_filter', 'data'),
     State('sequence', 'data'),
     State('clicked_nucleotide', 'data'),
     State('clicked_filter', 'data')],
-    [Input(f'toggle-switch-{i}', 'value') for i in range(len(filters_to_apply))],
+    [Input(f'toggle-switch-{i}', 'value') for i in range(len(filters_config))],
 )
 def update_highlighting_and_suggestions(mouseSelections, annotations_per_filter, current_sequence, prev_nucleotide, prev_filter, *toggle_states):
     #if current sequence hasn't been assigned, don't update. Otherwise our sequences break.

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='seqret',
-    version='0.1.2',
+    version='0.2.0',
     packages=find_packages(),
     install_requires=[
         'biopython==1.78',
@@ -17,7 +17,8 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'seqret=seqret.app:start_app'
+            #'seqret=seqret.app:start_app'
+            'seqret=seqret.cli:main'
         ],
     },
     author='Nicholas Freitas',

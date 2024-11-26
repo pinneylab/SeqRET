@@ -1,6 +1,9 @@
 import dash_bio as dashbio
 from dash import dcc, html
 from .filters import filters_to_apply
+from .filters import get_filters
+
+filters_config = get_filters()
 
 ### Sidebar Layout ###
 SIDEBAR_STYLE = {
