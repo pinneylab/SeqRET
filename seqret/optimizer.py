@@ -13,6 +13,7 @@ def optimize_sequence(sequence, filters_config=None, filters_enabled=None):
     Returns:
     - optimized_sequence: the optimized nucleotide sequence
     """
+    print('Optimizing sequence...')
     if filters_config is None:
         filters_config = get_filters()
 
