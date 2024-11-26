@@ -1,6 +1,5 @@
 import dash_bio as dashbio
 from dash import dcc, html
-from .filters import filters_to_apply
 from .filters import get_filters
 
 filters_config = get_filters()
@@ -93,12 +92,12 @@ content = html.Div(
             id='default-sequence-viewer-{}'.format(i),
             sequence='AAA',
             toolbar=False,
-            title=filters_to_apply[i].get_title(),
+            title=filters_config[i].get_title(),
             badge=False,
             charsPerLine=90,
             search=False,
         ),
-    ],style={'display': 'flex', 'flexDirection': 'row'}) for i in range(len(filters_to_apply)) ] + 
+    ],style={'display': 'flex', 'flexDirection': 'row'}) for i in range(len(filters_config)) ] + 
     [html.Div(id='output'),
      dashbio.FornaContainer(id='my-default-forna')],
     style=CONTENT_STYLE

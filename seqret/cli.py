@@ -3,14 +3,14 @@ import argparse
 import csv
 from .optimizer import optimize_sequence
 from .filters import get_filters
-#from .app import start_app  # Import the function to start the web app
+from .app import start_app  # Import the function to start the web app
 
 def main():
     parser = argparse.ArgumentParser(description='Optimize DNA sequences for expression.')
     subparsers = parser.add_subparsers(dest='command')
 
     # Subparser for the default 'optimize' command
-    parser_optimize = subparsers.add_parser('optimize', help='Optimize sequences')
+    parser_optimize = subparsers.add_parser('optimize', help='Optimize sequences using CLI')
     parser_optimize.add_argument('-s', '--sequence', type=str, help='DNA sequence to optimize')
     parser_optimize.add_argument('-f', '--file', type=str, help='File containing DNA sequence to optimize')
     parser_optimize.add_argument('-i', '--input_csv', type=str, help='CSV file containing DNA sequences to optimize')
@@ -42,7 +42,7 @@ def main():
     elif args.command == 'webapp':
         start_app(host=args.host, port=args.port)
     else:
-        parser_webapp.print_help()
+        parser.print_help()
 
 def optimize_and_print(sequence, filters_titles):
     filters_config = get_filters()
