@@ -7,7 +7,8 @@ SeqRET is a python package to optimize the codons of a DNA or RNA sequence for i
 ## Table of Contents
 
 - [Installation](#installation)
-- [Usage](#usage)
+- [Usage - CLI](#usage-cli)
+- [Usage - Web App](#usage-webapp)
 - [Filters](#filters)
 - [Adding a Filter](#adding-a-filter)
 - [License](#license)
@@ -27,9 +28,18 @@ Then, install the package to your python or conda environment using:
 ```pip install seqret```
 
 
-## Usage
+## Usage - CLI
+In your conda or python environment, you can now run the command `seqret optimize` to start optimizing sequences.
 
-In your conda or python environment, you can now run the app using the command `seqret`.
+To input a single sequence as text, use `sequence optimize -s [YOUR SEQUENCE]`.
+
+To input a CSV file, specify the input and output files using `-i` and `-o`, respectively. The input CSV must have a column titled 'Sequences'. The output CSV will be identical, with an additional column titled `OptimizedSequences`.
+
+N.B. Choosing filters from the command line is not currently implemented - all filters are applied.
+
+## Usage - Web App
+
+You can run the web app using the command `seqret webapp`.
 
 This will start a web app that can be accessed at `localhost:8050` in your browser.
 
@@ -114,3 +124,5 @@ The score_to_color() method can also be overridden to change the color scheme fo
 ## License
 
 This package is licensed under the MIT License.
+
+Icon image via Freepik.

@@ -1,6 +1,9 @@
 import dash_bio as dashbio
 from dash import dcc, html
-from .filters import filters_to_apply
+from .filters import get_filters
+
+filters_config = get_filters()
+num_filters = len(filters_config)
 
 ### Sidebar Layout ###
 SIDEBAR_STYLE = {
@@ -75,10 +78,9 @@ sidebar = html.Div(
     style=SIDEBAR_STYLE,
 )
 
-
+# Content Layout
 content = html.Div(
-    #here we riffle together the toggle switches in-line with the filters
-    [ html.Div([
+    [html.Div([
         dcc.Checklist(
             id=f'toggle-switch-{i}',
             options=[{'label': '', 'value': 'on'}],
@@ -87,17 +89,15 @@ content = html.Div(
             style={'fontSize': '20px'}
         ),
         dashbio.SequenceViewer(
-            id='default-sequence-viewer-{}'.format(i),
-            sequence='AAA',
+            id=f'default-sequence-viewer-{i}',
+            sequence='SEQRET',
             toolbar=False,
-            title=filters_to_apply[i].get_title(),
+            title=filters_config[i]['title'],
             badge=False,
             charsPerLine=90,
             search=False,
         ),
-    ],style={'display': 'flex', 'flexDirection': 'row'}) for i in range(len(filters_to_apply)) ] + 
-    [html.Div(id='output'),
-     dashbio.FornaContainer(id='my-default-forna')],
-    style=CONTENT_STYLE
+    ], style={'display': 'flex', 'flexDirection': 'row'}) for i in range(num_filters)] +
+    [html.Div(id='output'), dashbio.FornaContainer(id='my-default-forna')],
+    style={'margin-left': '18rem', 'margin-right': '2rem', 'padding': '2rem 1rem', 'background-color': 'white'}
 )
-
