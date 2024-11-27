@@ -13,7 +13,7 @@ def main():
     #parser_optimize.add_argument('-f', '--file', type=str, help='File containing DNA sequence to optimize')
     parser_optimize.add_argument('-i', '--input_csv', type=str, help='CSV file containing DNA sequences to optimize. Looks for "Sequence" column.')
     parser_optimize.add_argument('-o', '--output_csv', type=str, help='Output CSV file to write optimized sequences. Will include an "OptimizedSequence" column.')
-    parser_optimize.add_argument('--filters', type=str, nargs='+', help='List of filters to apply (default: all)')
+    parser_optimize.add_argument('--filters', type=str, nargs='+', help='List of filters to apply (Not yet implemented.)')
 
     # Subparser for the 'webapp' command
     parser_webapp = subparsers.add_parser('webapp', help='Launch the web application')
@@ -21,6 +21,8 @@ def main():
     parser_webapp.add_argument('--port', type=int, default=8050, help='Port for the web app')
 
     args = parser.parse_args()
+    # Set filters to None (run all of them), because we haven't implemented the filters argument yet
+    args.filters = None
 
     if args.command == 'optimize':
         if args.sequence:

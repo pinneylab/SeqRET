@@ -13,7 +13,6 @@ def create_sequence_viewer_app():
     Creates a Dash app that displays sequence viewers for each filter.
     """
     app = Dash('SeqRET', title='SeqRET', external_stylesheets=[dbc.themes.BOOTSTRAP], assets_folder=os.path.join(MODULE_DIR, 'assets'))
-    app._favicon = 'dna.png'
 
     app.layout = html.Div(
         [dcc.Location(id="url"), sidebar, content, submission_box,

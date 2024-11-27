@@ -21,6 +21,10 @@ setup(
             'seqret=seqret.cli:main'
         ],
     },
+    package_data={
+        # Specify package and the files to include
+        'seqret': ['assets/*.ico'],
+    },
     author='Nicholas Freitas',
     author_email='nicholas.freitas@ucsf.edu',
     description='GUI for optimizing DNA sequences for improved protein expression.',
