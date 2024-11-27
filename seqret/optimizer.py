@@ -31,7 +31,7 @@ def optimize_sequence(sequence, filters_config=None, filters_enabled=None):
     # Get annotations per filter
     annotations_per_filter = []
     for filter in filters_to_apply:
-        filter.process()
+        #filter.process() # We already processed the filters in the constructor
         annotations = filter.get_annotations()
         annotations_per_filter.append(annotations)
 

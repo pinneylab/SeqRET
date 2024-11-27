@@ -1,4 +1,6 @@
 from Bio.Data import CodonTable
+import time
+import re
 
 ### Helper dictionaries ###
 codon_to_AA = CodonTable.unambiguous_dna_by_name['Standard'].forward_table
@@ -295,7 +297,6 @@ class BannedSequencesFilter(SequenceFilter):
         
         #scan over full sequence for banned subsequences. Make note of nucleotide indices that are part of a banned subsequence.
         crap_indices = self.get_bad_indices(self.sequence)
-        
         nucleotide_scores = [0 if crap_indices[i] else 1 for i in range(len(crap_indices))]
 
         #split into codons:
@@ -327,7 +328,7 @@ class BannedSequencesFilter(SequenceFilter):
             codon_suggestions.append(current_codon_suggestions)
 
         #for each nucleotide that is part of a banned subsequence, give its containing nucleotide a score of 0. Suggest alternate nucleotides.
-        #for each nucleotide that is not part of a banned subsequence, give its containing nucleotide a score of 1. Suggest no alternate nucleotides.
+        #otherwise, give it a score of 1.
         #make the annotations
         self.annotations = []
         for i in range(len(codon_list)):
@@ -339,11 +340,19 @@ class BannedSequencesFilter(SequenceFilter):
             })
         
     def get_bad_indices(self, seq):
-        crap_indices = [False]*len(seq)
-        for banned_sequence in self.banned_sequences:
-            for i in range(len(seq)-len(banned_sequence)):
-                if seq[i:i+len(banned_sequence)] == banned_sequence:
-                    crap_indices[i:i+len(banned_sequence)] = [True]*len(banned_sequence)
+        # crap_indices = [False]*len(seq)
+        # for banned_sequence in self.banned_sequences:
+        #     for i in range(len(seq)-len(banned_sequence)):
+        #         if seq[i:i+len(banned_sequence)] == banned_sequence:
+        #             crap_indices[i:i+len(banned_sequence)] = [True]*len(banned_sequence)
+        # return crap_indices
+        pattern = '|'.join(map(re.escape, self.banned_sequences))
+        matches = re.finditer(pattern, seq)
+        crap_indices = [False] * len(seq)
+        for match in matches:
+            start, end = match.span()
+            for i in range(start, end):
+                crap_indices[i] = True
         return crap_indices
 
     def score_to_color(self, score):

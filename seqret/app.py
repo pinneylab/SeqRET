@@ -1,15 +1,19 @@
 import dash_bootstrap_components as dbc
 from dash import Dash, dcc, html
+import os
 
 from .layouts import submission_box, sidebar, content
 from .filters import get_filters
 from .callbacks import register_callbacks
 
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 def create_sequence_viewer_app():
     """
     Creates a Dash app that displays sequence viewers for each filter.
     """
-    app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+    app = Dash('SeqRET', title='SeqRET', external_stylesheets=[dbc.themes.BOOTSTRAP], assets_folder=os.path.join(MODULE_DIR, 'assets'))
+    app._favicon = 'dna.png'
 
     app.layout = html.Div(
         [dcc.Location(id="url"), sidebar, content, submission_box,
