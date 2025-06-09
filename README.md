@@ -121,6 +121,21 @@ It must store its output in `self.annotations`, which breaks the sequence up int
 
 The score_to_color() method can also be overridden to change the color scheme for the filter.
 
+## Development and Testing
+
+To work on the code you can install the package in editable mode and run the
+unit tests.  The project uses [`pytest`](https://pytest.readthedocs.io/) and the
+test data in `tests/test_data/`.
+
+```bash
+pip install -e .
+pip install -r requirements-dev.txt
+pytest
+```
+
+This will execute `tests/test_cli.py` which verifies that the command line
+interface correctly optimizes the sequences in the bundled test CSV.
+
 ## License
 
 This package is licensed under the MIT License.
