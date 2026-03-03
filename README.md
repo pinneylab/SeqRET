@@ -31,9 +31,9 @@ Then, install the package to your python or conda environment using:
 ## Usage - CLI
 In your conda or python environment, you can now run the command `seqret optimize` to start optimizing sequences.
 
-To input a single sequence as text, use `sequence optimize -s [YOUR SEQUENCE]`.
+To input a single sequence as text, use `seqret optimize -s [YOUR SEQUENCE]`.
 
-To input a CSV file, specify the input and output files using `-i` and `-o`, respectively. The input CSV must have a column titled 'Sequences'. The output CSV will be identical, with an additional column titled `OptimizedSequences`.
+To input a CSV file, specify the input and output files using `-i` and `-o`, respectively. The input CSV must have a column titled 'Sequence'. The output CSV will be identical, with an additional column titled `OptimizedSequences`.
 
 N.B. Choosing filters from the command line is not currently implemented - all filters are applied.
 
