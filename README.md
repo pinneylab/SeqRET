@@ -33,7 +33,7 @@ In your conda or python environment, you can now run the command `seqret optimiz
 
 To input a single sequence as text, use `sequence optimize -s [YOUR SEQUENCE]`.
 
-To input a CSV file, specify the input and output files using `-i` and `-o`, respectively. The input CSV must have a column titled 'Sequence'. The output CSV will be identical, with an additional column titled `OptimizedSequence`.
+To input a CSV file, specify the input and output files using `-i` and `-o`, respectively. The input CSV must have a column titled `Sequence`. The output CSV will be identical, with an additional column titled `OptimizedSequence`.
 
 N.B. Choosing filters from the command line is not currently implemented - all filters are applied.
 
